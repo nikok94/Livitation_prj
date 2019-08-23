@@ -8,13 +8,21 @@ using LivitationWFA.Properties;
 namespace LivitationWFA
 {
     public partial class Form1 : Form
-    {
+    {        
         public Form1()
         {
+            InitB();
             InitializeComponent();
-            textBox1.Text = Settings.Default["FilePath"].ToString();
-            textBox2.Text = Settings.Default["Set1Path"].ToString();
-            comboBox2.SelectedIndex = Convert.ToInt32(Settings.Default["BaudRate"]); 
+            comboBox2.SelectedIndex = Convert.ToInt32(Settings.Default["BaudRate"]);
+            
+            for (int i = 0; i < 16; i++)
+                for(int j = 0; j < 16; j++)
+                {
+                    SecondForm.AntennArray[i, j] = new UInt32[8];
+                    for (int m = 0; m < 8; m++)
+                        SecondForm.AntennArray[i, j][m] = 0x7fFF0000;
+                }
+            
 
             string[] ports = SerialPort.GetPortNames();
             foreach (string port in ports)
@@ -37,11 +45,38 @@ namespace LivitationWFA
              
 
             timer1.Start();
-
-          
-
-
         }
+
+        Form2 SecondForm = new Form2();
+
+        int AntennArrayButton_ButWidth = 28;
+        int AntennArrayButton_XOffset = 536;
+        int AntennArrayButton_YOffset = 20;
+
+        private Button[,] AntennArrayButton = new Button[16, 16];
+        public void InitB()
+        {
+            for (int i = 0; i < 16; i++)
+                for (int j = 0; j < 16; j++)
+                {
+                    AntennArrayButton[i,j] = new Button();
+                    AntennArrayButton[i, j].Location = new System.Drawing.Point(AntennArrayButton_XOffset + i* AntennArrayButton_ButWidth, AntennArrayButton_YOffset + j* AntennArrayButton_ButWidth);
+                    AntennArrayButton[i, j].Size = new System.Drawing.Size(AntennArrayButton_ButWidth, AntennArrayButton_ButWidth);
+                    AntennArrayButton[i, j].MouseClick += new MouseEventHandler(S_MouseClick);
+                    this.Controls.Add(AntennArrayButton[i, j]);
+                }
+            
+        }
+        private void S_MouseClick(object sender, EventArgs e)
+        {
+            this.Cursor = new Cursor(Cursor.Current.Handle);
+            int x = (Cursor.Position.X - this.Location.X - AntennArrayButton_XOffset - 8) / AntennArrayButton_ButWidth;
+            int y = (Cursor.Position.Y - this.Location.Y - AntennArrayButton_YOffset - AntennArrayButton_ButWidth - 3) / AntennArrayButton_ButWidth;
+            SecondForm.ChangeEmitterParam(x, y);
+  //          SecondForm.label1.Text = "положение x = " + x + ", y = " + y;
+        }
+
+
 
         int NumPorts;
         static SerialPort Serial;
@@ -83,21 +118,6 @@ namespace LivitationWFA
                     Settings.Default.Save();
                 }
             }
-           // if (!String.Equals(LastName, Name))
-           // {
-           //     Serial.Close();
-           //     Serial = new SerialPort(Name, Convert.ToInt32((string)comboBox2.SelectedItem), System.IO.Ports.Parity.None, 8, StopBits.One);
-           //     if (Serial.IsOpen)
-           //     {
-           //         LablePortOpen.Text = ("Порт недоступен");
-           //     }
-           //     else
-           //     {
-           //         Serial.Open();
-           //         LablePortOpen.Text = ("Порт открыт");
-           //     }
-           //
-           // }
            
         
         }
@@ -127,21 +147,6 @@ namespace LivitationWFA
             {
                 byte[] DataByte = BitConverter.GetBytes(0x01);
                 Serial.Write(DataByte, 0, 1);
-
-                if (Serial.BytesToRead > 0)
-                {
-                    byte ReadData = Convert.ToByte(Serial.ReadByte());
-                    Serial.DiscardInBuffer();
-                    if (ReadData == 1)
-                    {
-                        pictureBox1.BackColor = System.Drawing.Color.Lime;
-                    }
-                    else
-                    {
-                        pictureBox1.BackColor = System.Drawing.Color.White;
-                    }
-                }
-
             }
 
 
@@ -161,19 +166,6 @@ namespace LivitationWFA
             {
                 byte[] DataByte = BitConverter.GetBytes(0x00);
                 Serial.Write(DataByte, 0, 1);
-                if (Serial.BytesToRead > 0)
-                {
-                    byte ReadData = Convert.ToByte(Serial.ReadByte());
-                    Serial.DiscardInBuffer();
-                    if (ReadData == 0)
-                    {
-                        pictureBox1.BackColor = System.Drawing.Color.White;
-                    }
-                    else
-                    {
-                        pictureBox1.BackColor = System.Drawing.Color.White;
-                    }
-                }
 
             }
 
@@ -222,78 +214,6 @@ namespace LivitationWFA
             
             }
    
-        }
-
-
-        private void ButtonLoad_Click(object sender, EventArgs e)
-        {
-            Settings.Default["FilePath"] = textBox1.Text;
-            Settings.Default.Save();
-            byte[] sinusform = new byte[2048];
-
-            if (System.IO.File.Exists(textBox1.Text))
-            {
-                if (!Serial.IsOpen)
-                {
-                    MessageBox.Show("Выберите COM порт");
-                }
-                else
-                {
-                    using (StreamReader sr = new StreamReader(textBox1.Text, System.Text.Encoding.Default))
-                    {
-                        string line;
-                        int i = 0;
-                        while ((line = sr.ReadLine()) != null)
-                        {
-                            sinusform[i] = Convert.ToByte(line);
-                            i = i + 1;
-                        }
-                    }
-                    byte[] DataByte = BitConverter.GetBytes(0x02);
-                    Serial.Write(DataByte, 0, 1);
-                    Serial.Write(sinusform, 0, sinusform.Length);
-                }
-
-            }
-            else
-            {
-                MessageBox.Show("Укажите расположение файла");
-            }
-        }
-
-        private void Button2_Click(object sender, EventArgs e)
-        {
-            Settings.Default["Set1Path"] = textBox2.Text;
-            Settings.Default.Save();
-            byte[] param1 = new byte[512];
-
-            if (System.IO.File.Exists(textBox2.Text))
-            {
-                if (!Serial.IsOpen)
-                {
-                    MessageBox.Show("Выберите COM порт");
-                }
-                else
-                {
-                    using (StreamReader sr = new StreamReader(textBox2.Text, System.Text.Encoding.Default))
-                    {
-                        string line;
-                        int i = 0;
-                        while ((line = sr.ReadLine()) != null)
-                        {
-                            param1[i] = Convert.ToByte(line);
-                            i = i + 1;
-                        }
-                    }
-                    byte[] DataByte = BitConverter.GetBytes(0x03);
-                    Serial.Write(DataByte, 0, 1);
-                    Serial.Write(param1, 0, param1.Length);
-                }
-            }
-            else
-            {
-                MessageBox.Show("Укажите расположение файла");
-            }
         }
     }
 }
