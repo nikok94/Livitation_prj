@@ -18,7 +18,7 @@ namespace LivitationWFA
             for (int i = 0; i < 16; i++)
                 for(int j = 0; j < 16; j++)
                 {
-                    SecondForm.AntennArray[i, j] = new UInt32[8];
+                    SecondForm.AntennArray[i, j] = new Int32[8];
                     for (int m = 0; m < 8; m++)
                         SecondForm.AntennArray[i, j][m] = 0x7fFF0000;
                 }
@@ -72,8 +72,7 @@ namespace LivitationWFA
             this.Cursor = new Cursor(Cursor.Current.Handle);
             int x = (Cursor.Position.X - this.Location.X - AntennArrayButton_XOffset - 8) / AntennArrayButton_ButWidth;
             int y = (Cursor.Position.Y - this.Location.Y - AntennArrayButton_YOffset - AntennArrayButton_ButWidth - 3) / AntennArrayButton_ButWidth;
-            SecondForm.ChangeEmitterParam(x, y);
-  //          SecondForm.label1.Text = "положение x = " + x + ", y = " + y;
+            SecondForm.ShowEmitterParam(x, y);
         }
 
 
