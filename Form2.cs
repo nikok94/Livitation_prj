@@ -18,19 +18,24 @@ namespace LivitationWFA
             InitB();
         }
 
-        public Int32[,][] AntennArray = new Int32[16, 16][];
+        public Form2(Form1 FirstForm)
+        {
+            InitializeComponent();
+            InitB();
+            nex = FirstForm;
 
-        public TextBox[] TextBoxArrayPhase = new TextBox[8];
-        public TextBox[] TextBoxArrayAmpl = new TextBox[8];
-        public TextBox[] TextBoxArrayFreq = new TextBox[8];
+        }
+
+        Form1 nex; 
+        public TextBox[,] TextBoxArray = new TextBox[8, 3];
         private Label[] LabelArray = new Label[8];
         int TextBox_Length = 50;
         int TextBox_Width = 28;
         int TextBoxArray_XOffset = 173;
         int TextBoxArray_YOffset = 56;
 
-        int EmitterParamPosition_X;
-        int EmitterParamPosition_Y;
+        public int EmitterParamPosition_X;
+        public int EmitterParamPosition_Y;
 
 
         public void InitB()
@@ -44,70 +49,56 @@ namespace LivitationWFA
                 LabelArray[i].Name = "Sin" + i.ToString();
                 this.Controls.Add(LabelArray[i]);
 
-
-                TextBoxArrayPhase[i] = new TextBox();
-                TextBoxArrayPhase[i].Location = new System.Drawing.Point(i * (TextBox_Length + 10) + TextBoxArray_XOffset, 0 * (TextBox_Width + 5) + TextBoxArray_YOffset);
-                TextBoxArrayPhase[i].Size = new System.Drawing.Size(TextBox_Length, TextBox_Width);
-                TextBoxArrayPhase[i].KeyPress += new KeyEventHandler(PhaseTextChanged);
-                this.Controls.Add(TextBoxArrayPhase[i]);
-
-                TextBoxArrayAmpl[i] = new TextBox();
-                TextBoxArrayAmpl[i].Location = new System.Drawing.Point(i * (TextBox_Length + 10) + TextBoxArray_XOffset, 1 * (TextBox_Width + 5) + TextBoxArray_YOffset);
-                TextBoxArrayAmpl[i].Size = new System.Drawing.Size(TextBox_Length, TextBox_Width);
-                TextBoxArrayAmpl[i].KeyPress += new KeyEventHandler(AmplTextChanged);
-                this.Controls.Add(TextBoxArrayAmpl[i]);
-
-                TextBoxArrayFreq[i] = new TextBox();
-                TextBoxArrayFreq[i].Location = new System.Drawing.Point(i * (TextBox_Length + 10) + TextBoxArray_XOffset, 2 * (TextBox_Width + 5) + TextBoxArray_YOffset);
-                TextBoxArrayFreq[i].Size = new System.Drawing.Size(TextBox_Length, TextBox_Width);
-                TextBoxArrayFreq[i].KeyPress += new KeyEventHandler(FreqTextChanged);
-                this.Controls.Add(TextBoxArrayFreq[i]);
-
+                for (int j = 0; j < 3; j++)
+                {
+                    TextBoxArray[i, j] = new TextBox();
+                    TextBoxArray[i, j].Location = new System.Drawing.Point(i * (TextBox_Length + 10) + TextBoxArray_XOffset, j * (TextBox_Width + 5) + TextBoxArray_YOffset);
+                    TextBoxArray[i, j].Size = new System.Drawing.Size(TextBox_Length, TextBox_Width);
+                    TextBoxArray[i, j].KeyPress += new KeyPressEventHandler(PhaseTextChanged);
+                    this.Controls.Add(TextBoxArray[i, j]);
+                }
 
             }
         }
-        private void AmplTextChanged(object sender, KeyEventArgs e)
-        {
-            
-        }
-        private void FreqTextChanged(object sender, KeyEventArgs e)
-        {
-        }
 
-        private void PhaseTextChanged(object sender, KeyEventArgs e)
+        private void PhaseTextChanged(object sender, KeyPressEventArgs e)
         {
-
         char number = e.KeyChar;
             if (!Char.IsDigit(number) && number != 8) // цифры и клавиша BackSpace
             {
                 e.Handled = true;
             }
 
-        }
-
-        public void ShowEmitterParam(int x, int y)
-        {
-            EmitterParamPosition_X = x;
-            EmitterParamPosition_Y = y;
-
             for (int i = 0; i < 8; i++)
             {
-                TextBoxArrayPhase[i].Text = (AntennArray[x, y][i] & 0x0000FFFF).ToString();
-                TextBoxArrayAmpl[i].Text = ((AntennArray[x, y][i] & 0x00ff0000)>>16).ToString();
-                TextBoxArrayFreq[i].Text = ((AntennArray[x, y][i] & 0xff000000)>>24).ToString();
+                if (!(TextBoxArray[i, 0].Text == ""))
+                    TextBoxArray[i, 0].Text = (Convert.ToInt32(TextBoxArray[i, 0].Text) & 0x000007FF).ToString();
+                if (!(TextBoxArray[i, 1].Text == ""))
+                    TextBoxArray[i, 1].Text = (Convert.ToInt32(TextBoxArray[i, 1].Text) & 0x000000FF).ToString();
+                if (!(TextBoxArray[i, 2].Text == ""))
+                    TextBoxArray[i, 2].Text = (Convert.ToInt32(TextBoxArray[i, 2].Text) & 0x000000FF).ToString();
             }
-            this.Show();
+
         }
 
+        private void Button1_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < 8; i++)
+                nex.AntennArray[EmitterParamPosition_X, EmitterParamPosition_Y][i] = Convert.ToInt32(TextBoxArray[i, 0].Text) | Convert.ToInt32(TextBoxArray[i, 1].Text) << 16 | Convert.ToInt32(TextBoxArray[i, 2].Text) << 24;
+            this.Close();
+        }
 
-        //    private void S_MouseClick(object sender, EventArgs e)
-        //    {
-        //        this.Cursor = new Cursor(Cursor.Current.Handle);
-        //        int x = (Cursor.Position.X - this.Location.X - AntennArrayButton_XOffset - 8) / AntennArrayButton_ButWidth;
-        //        int y = (Cursor.Position.Y - this.Location.Y - AntennArrayButton_YOffset - AntennArrayButton_ButWidth - 3) / AntennArrayButton_ButWidth;
-        //        SecondForm.label1.Text = "положение x = " + x + ", y = " + y;
-        //        SecondForm.ShowDialog();
-        //    }
-
+        private void Button2_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < 16; i++)
+                for (int j = 0; j < 16; j++)
+                {
+                    for (int k = 0; k < 8; k++)
+                    {
+                        nex.AntennArray[i, j][k] = Convert.ToInt32(TextBoxArray[k, 0].Text) | Convert.ToInt32(TextBoxArray[k, 1].Text) << 16 | Convert.ToInt32(TextBoxArray[k, 2].Text) << 24;
+                    }
+                }
+            this.Close();
+        }
     }
 }
