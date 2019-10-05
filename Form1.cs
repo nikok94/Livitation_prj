@@ -178,18 +178,18 @@ namespace LivitationWFA
                     Serial.Write(BitConverter.GetBytes(2), 0, 1);
                     Serial.Write(pointSin, 0, pointSin.Length);
 
-                for (int i = 0; i < 16; i++)
+                for (int i = 0; i < 8; i++)
                 {
                     Serial.Write(BitConverter.GetBytes(i + 3), 0, 1);
-                    for (int j = 0; j < 16; j++)
-                    {
-                        for (int k = 0; k < 8; k++)
+                    for (int n = 0; n < 2; n++)
+                        for (int j = 0; j < 16; j++)
                         {
-                            byte[] data = BitConverter.GetBytes(AntennArray[i, j][k]);
-                            Serial.Write(data, 0, data.Length);
+                            for (int k = 0; k < 8; k++)
+                            {
+                                byte[] data = BitConverter.GetBytes(AntennArray[j , 2 * i + n][k]);
+                                Serial.Write(data, 0, data.Length);
+                            }
                         }
-                    }
-
                 }
                 byte[] DataByte = BitConverter.GetBytes(0x01);
                 Serial.Write(DataByte, 0, 1);
